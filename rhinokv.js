@@ -39,7 +39,7 @@
     
     RhinoKV.prototype.search = function(searchString) {
         let results = [];
-        let cursor = this.db.rawQuery("SELECT * FROM kv_pairs WHERE value LIKE '%?%'",[searchString]);
+        let cursor = this.db.rawQuery("SELECT * FROM kv_pairs WHERE value LIKE '%' || ? || '%'",[searchString]);
         if (cursor.moveToFirst()) {
             do {
                 let key = cursor.getString(0);
@@ -53,7 +53,7 @@
     
     RhinoKV.prototype.searchJson = function(valueKey, searchString) {
         let results = [];
-        let cursor = this.db.rawQuery("SELECT key, value FROM kv_pairs WHERE value LIKE '%?%'", [searchString]);
+        let cursor = this.db.rawQuery("SELECT key, value FROM kv_pairs WHERE value LIKE '%' || ? || '%'", [searchString]);
         if (cursor.moveToFirst()) {
             do {
                 let key = cursor.getString(0);
@@ -78,7 +78,7 @@
     
     RhinoKV.prototype.searchKey = function(searchString) {
         let results = [];
-        let cursor = this.db.rawQuery("SELECT * FROM kv_pairs WHERE key LIKE '%?%'",[searchString]);
+        let cursor = this.db.rawQuery("SELECT * FROM kv_pairs WHERE key LIKE '%' || ? || '%'",[searchString]);
         if (cursor.moveToFirst()) {
             do {
                 let key = cursor.getString(0);
