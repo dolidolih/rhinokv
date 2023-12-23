@@ -20,7 +20,7 @@
         let cursor = this.db.rawQuery("SELECT * FROM kv_pairs WHERE key = ?", [key]);
         try {
             if (cursor.moveToFirst()) {
-                let value = cursor.getString(cursor.getColumnIndexOrThrow("value"));
+                let value = cursor.getString(cursor.getColumnIndexOrThrow("value"))+"";
                 return { "key": key, "value": JSON.parse(value) };
             } else {
                 return false;
@@ -42,8 +42,8 @@
         let cursor = this.db.rawQuery("SELECT * FROM kv_pairs WHERE value LIKE '%' || ? || '%'",[searchString]);
         if (cursor.moveToFirst()) {
             do {
-                let key = cursor.getString(0);
-                let value = cursor.getString(1);
+                let key = cursor.getString(0)+"";
+                let value = cursor.getString(1)+"";
                 results.push({key: key, value: JSON.parse(value)});
             } while (cursor.moveToNext());
         }
@@ -56,8 +56,8 @@
         let cursor = this.db.rawQuery("SELECT key, value FROM kv_pairs WHERE value LIKE '%' || ? || '%'", [searchString]);
         if (cursor.moveToFirst()) {
             do {
-                let key = cursor.getString(0);
-                let value = JSON.parse(cursor.getString(1));
+                let key = cursor.getString(0)+"";
+                let value = JSON.parse(cursor.getString(1)+"");
                 let valueKeyComponents = valueKey.split('.');
                 let currValue = value;
                 for (let i = 0; i < valueKeyComponents.length; i++) {
@@ -78,12 +78,25 @@
     
     RhinoKV.prototype.searchKey = function(searchString) {
         let results = [];
-        let cursor = this.db.rawQuery("SELECT * FROM kv_pairs WHERE key LIKE '%' || ? || '%'",[searchString]);
+        let cursor = this.db.rawQuery("SELECT * FROM kv_pairs WHERE key LIKE '%' || ? '%'",[searchString]);
         if (cursor.moveToFirst()) {
             do {
-                let key = cursor.getString(0);
-                let value = cursor.getString(1);
+                let key = cursor.getString(0)+"";
+                let value = cursor.getString(1)+"";
                 results.push({key: key, value: JSON.parse(value)});
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return results;
+    };
+
+    RhinoKV.prototype.listKeys = function() {
+        let results = [];
+        let cursor = this.db.rawQuery("SELECT key FROM kv_pairs",[]);
+        if (cursor.moveToFirst()) {
+            do {
+                let key = cursor.getString(0)+"";
+                results.push(key);
             } while (cursor.moveToNext());
         }
         cursor.close();
