@@ -21,6 +21,20 @@
         try {
             if (cursor.moveToFirst()) {
                 let value = cursor.getString(cursor.getColumnIndexOrThrow("value"))+"";
+                return JSON.parse(value);
+            } else {
+                return false;
+            }
+        } finally {
+            cursor.close();
+        }
+    };
+
+    RhinoKV.prototype.getKV = function(key) {
+        let cursor = this.db.rawQuery("SELECT * FROM kv_pairs WHERE key = ?", [key]);
+        try {
+            if (cursor.moveToFirst()) {
+                let value = cursor.getString(cursor.getColumnIndexOrThrow("value"))+"";
                 return { "key": key, "value": JSON.parse(value) };
             } else {
                 return false;
@@ -29,7 +43,7 @@
             cursor.close();
         }
     };
-    
+
     RhinoKV.prototype.put = function(key, value) {
         let contentValues = new ContentValues();
         contentValues.put("key", key);
