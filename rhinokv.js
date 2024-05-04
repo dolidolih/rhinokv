@@ -92,7 +92,7 @@
     
     RhinoKV.prototype.searchKey = function(searchString) {
         let results = [];
-        let cursor = this.db.rawQuery("SELECT * FROM kv_pairs WHERE key LIKE '%' || ? '%'",[searchString]);
+        let cursor = this.db.rawQuery("SELECT * FROM kv_pairs WHERE key LIKE '%' || ? || '%'",[searchString]);
         if (cursor.moveToFirst()) {
             do {
                 let key = cursor.getString(0)+"";
