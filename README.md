@@ -12,7 +12,7 @@ KV.put("test","hi");
 
 KV.put("test2",{"abc":{"def":"hij"}})
 
-v = KV.get("test").value;
+v = KV.get("test");
 
 s = KV.search("hi");
 
