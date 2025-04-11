@@ -20,4 +20,10 @@ sj = KV.searchJson("abc.def","hi");
 
 KV.db.rawQuery("select * from kv_pairs",[]); // db는 android.database.sqlite.SQLiteDatabase 객체이므로 db를 날로 다룰수도 있음.
 
+KV.setCollection('abc');
+
+KV.setCollection('default'); // default collection은 기존 kv_pairs로 적용됨.
+
+KV.listCollections();
+
 ```
