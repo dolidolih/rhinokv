@@ -4,6 +4,7 @@
 
     function RhinoKV() {
         this.filename = null;
+        this.currentCollection = "kv_pairs";
     };
 
     RhinoKV.prototype.open = function(filename) {
@@ -15,9 +16,38 @@
     RhinoKV.prototype.close = function() {
         this.db.close();
     };
+
+    RhinoKV.prototype.setCollection = function(collectionName) {
+        if (collectionName === "default") {
+            this.currentCollection = "kv_pairs";
+        } else {
+            this.currentCollection = collectionName;
+        }
+
+        // Create the table if it doesn't exist
+        let tableName = this.currentCollection;
+        this.db.execSQL("CREATE TABLE IF NOT EXISTS " + tableName + " (key TEXT PRIMARY KEY, value TEXT)");
+    };
+
+    RhinoKV.prototype.listCollections = function() {
+        let results = [];
+        let cursor = this.db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", []);
+        if (cursor.moveToFirst()) {
+            do {
+                let name = cursor.getString(0)+"";
+                if (name === "kv_pairs") {
+                    results.push("default");
+                } else {
+                    results.push(name);
+                }
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return results;
+    };
     
     RhinoKV.prototype.get = function(key) {
-        let cursor = this.db.rawQuery("SELECT * FROM kv_pairs WHERE key = ?", [key]);
+        let cursor = this.db.rawQuery("SELECT * FROM " + this.currentCollection + " WHERE key = ?", [key]);
         try {
             if (cursor.moveToFirst()) {
                 let value = cursor.getString(cursor.getColumnIndexOrThrow("value"))+"";
@@ -31,7 +61,7 @@
     };
 
     RhinoKV.prototype.getKV = function(key) {
-        let cursor = this.db.rawQuery("SELECT * FROM kv_pairs WHERE key = ?", [key]);
+        let cursor = this.db.rawQuery("SELECT * FROM " + this.currentCollection + " WHERE key = ?", [key]);
         try {
             if (cursor.moveToFirst()) {
                 let value = cursor.getString(cursor.getColumnIndexOrThrow("value"))+"";
@@ -48,12 +78,12 @@
         let contentValues = new ContentValues();
         contentValues.put("key", key);
         contentValues.put("value", JSON.stringify(value));
-        this.db.insertWithOnConflict("kv_pairs", null, contentValues, SQLiteDatabase.CONFLICT_REPLACE);
+        this.db.insertWithOnConflict(this.currentCollection, null, contentValues, SQLiteDatabase.CONFLICT_REPLACE);
     };
     
     RhinoKV.prototype.search = function(searchString) {
         let results = [];
-        let cursor = this.db.rawQuery("SELECT * FROM kv_pairs WHERE value LIKE '%' || ? || '%'",[searchString]);
+        let cursor = this.db.rawQuery("SELECT * FROM " + this.currentCollection + " WHERE value LIKE '%' || ? || '%'",[searchString]);
         if (cursor.moveToFirst()) {
             do {
                 let key = cursor.getString(0)+"";
@@ -67,7 +97,7 @@
     
     RhinoKV.prototype.searchJson = function(valueKey, searchString) {
         let results = [];
-        let cursor = this.db.rawQuery("SELECT key, value FROM kv_pairs WHERE value LIKE '%' || ? || '%'", [searchString]);
+        let cursor = this.db.rawQuery("SELECT key, value FROM " + this.currentCollection + " WHERE value LIKE '%' || ? || '%'", [searchString]);
         if (cursor.moveToFirst()) {
             do {
                 let key = cursor.getString(0)+"";
@@ -92,7 +122,7 @@
     
     RhinoKV.prototype.searchKey = function(searchString) {
         let results = [];
-        let cursor = this.db.rawQuery("SELECT * FROM kv_pairs WHERE key LIKE '%' || ? || '%'",[searchString]);
+        let cursor = this.db.rawQuery("SELECT * FROM " + this.currentCollection + " WHERE key LIKE '%' || ? || '%'",[searchString]);
         if (cursor.moveToFirst()) {
             do {
                 let key = cursor.getString(0)+"";
@@ -106,7 +136,7 @@
 
     RhinoKV.prototype.listKeys = function() {
         let results = [];
-        let cursor = this.db.rawQuery("SELECT key FROM kv_pairs",[]);
+        let cursor = this.db.rawQuery("SELECT key FROM " + this.currentCollection,[]);
         if (cursor.moveToFirst()) {
             do {
                 let key = cursor.getString(0)+"";
@@ -118,7 +148,7 @@
     };
     
     RhinoKV.prototype.del = function(key) {
-        this.db.delete("kv_pairs", "key = ?", [key]);
+        this.db.delete(this.currentCollection, "key = ?", [key]);
     };
     
     RhinoKV.RhinoKV = function() {
